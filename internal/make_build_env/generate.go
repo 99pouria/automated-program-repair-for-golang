@@ -28,8 +28,6 @@ func generateMainFunction(goCode code.Code) string {
 		numberOfOutputs += count
 	}
 
-	fmt.Println("outputs:", goCode.OutputTypes)
-
 	checkArgsCode := checkArgsLen(numberOfInputs)
 	convertInputsCode := convertInputs(goCode.InputTypes)
 
@@ -76,8 +74,6 @@ func callPkgFunc(pkgName, funcName string, inputLen, outputLen int) []jen.Code {
 		params[i] = jen.Id(fmt.Sprintf("in%d", i+1))
 	}
 
-	fmt.Println(outputLen, "++++")
-
 	outs := make([]jen.Code, outputLen)
 	for i := 0; i < outputLen; i++ {
 		outs[i] = jen.Id(fmt.Sprintf("out%d", i+1))
@@ -101,10 +97,8 @@ func checkArgsLen(inputLen int) []jen.Code {
 
 func convertInputs(inputs map[string]int) []jen.Code {
 	inputParserCode := make([]jen.Code, 0, len(inputs))
-	fmt.Println(inputs)
 	inputIndex := 0
 	for itype, count := range inputs {
-		fmt.Println(itype, count)
 		for range count {
 			inputIndex += 1
 
