@@ -2,23 +2,26 @@ package code
 
 import (
 	"fmt"
-	"go/types"
 	"os"
+	"regexp"
 	"strings"
 
-	preprocess "github.com/99pouria/go-apr/internal/pre-process"
+	"github.com/99pouria/go-apr/utils"
+	"github.com/sirupsen/logrus"
 )
 
 type Code struct {
-	Path        string
-	FuncName    string
+	Path     string
+	FuncName string
+
 	CodeContent string
+	PackageName string
 
 	StartOfFuncLine int
 	EndOfFuncLine   int
 
-	InputTypes  []types.Type
-	OutputTypes []types.Type
+	InputTypes  map[string]int
+	OutputTypes map[string]int
 }
 
 func NewCode(path, funcName string) (*Code, error) {
@@ -26,31 +29,48 @@ func NewCode(path, funcName string) (*Code, error) {
 
 	c.Path = path
 	c.FuncName = funcName
+	c.InputTypes = make(map[string]int)
+	c.OutputTypes = make(map[string]int)
 
 	if err := c.updateFuncPosition(); err != nil {
 		return nil, err
 	}
 
-	if err := c.findFuncIOType(); err != nil {
+	if err := c.retrieveTypes(); err != nil {
+		_ = err
+		return nil, err
+	}
+
+	if err := c.retrievePkgName(); err != nil {
 		return nil, err
 	}
 
 	return c, nil
 }
 
-func (c *Code) findFuncIOType() error {
-	if err := c.updateFuncPosition(); err != nil {
-		return err
+func (c *Code) retrievePkgName() error {
+	re, err := regexp.Compile(`^\s*package\s+([^\d]\w+)`)
+	if err != nil {
+		return fmt.Errorf("can not compile regex to retrieve package name")
 	}
 
-	// finding inputs
-	
+	matches := re.FindStringSubmatch(c.CodeContent)
+
+	switch len(matches) {
+	case 0, 1:
+		return fmt.Errorf("package name not found")
+	case 2:
+		c.PackageName = matches[1]
+	default:
+		c.PackageName = matches[1]
+		logrus.WithField("found names", matches).Warn("more than one name for package found")
+	}
 
 	return nil
 }
 
 func (c *Code) updateCodeContentFromPath() error {
-	if err := preprocess.FormatGoFile(c.Path); err != nil {
+	if err := utils.FormatGoFile(c.Path); err != nil {
 		return err
 	}
 
@@ -118,5 +138,5 @@ func (c *Code) ReplaceFuncBody(newBody string) error {
 		return err
 	}
 
-	return preprocess.FormatGoFile(c.Path)
+	return utils.FormatGoFile(c.Path)
 }
