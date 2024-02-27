@@ -5,24 +5,23 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"go/types"
 )
 
-func retrieveTypes(inputsString, functionName string) ([]types.Type, error) {
+func (c *Code) retrieveTypes() error {
 
 	fileSet := token.NewFileSet() // positions are relative to fileSet
 
 	// Parse the file.
-	file, err := parser.ParseFile(fileSet, "", inputsString, parser.ParseComments)
+	file, err := parser.ParseFile(fileSet, "", c.CodeContent, parser.ParseComments)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var funcDecl *ast.FuncDecl
 
 	// Search for the function declaration.
 	ast.Inspect(file, func(n ast.Node) bool {
-		if fd, ok := n.(*ast.FuncDecl); ok && fd.Name.Name == functionName {
+		if fd, ok := n.(*ast.FuncDecl); ok && fd.Name.Name == c.FuncName {
 			funcDecl = fd
 			return false // Stop the search
 		}
@@ -30,20 +29,17 @@ func retrieveTypes(inputsString, functionName string) ([]types.Type, error) {
 	})
 
 	if funcDecl == nil {
-		return nil, fmt.Errorf("Function %s not found\n", functionName)
+		return fmt.Errorf("function %s not found", c.FuncName)
 	}
 
-	// Print the input types of the function.
-	fmt.Printf("Input types for function %s:\n", functionName)
 	for _, field := range funcDecl.Type.Params.List {
-		fmt.Printf("%s\n", field.Type)
+		c.InputTypes[fmt.Sprintf("%s", field.Type)] = len(field.Names)
 	}
 
-	fmt.Printf("\nInput types for function %s:\n", functionName)
 	for _, field := range funcDecl.Type.Results.List {
-		fmt.Printf("%s\n", field.Type)
+		c.OutputTypes[fmt.Sprintf("%s", field.Type)] = len(field.Names)
 	}
 
-	return nil, nil
+	return nil
 
 }
