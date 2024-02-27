@@ -6,36 +6,43 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
+
+	"github.com/99pouria/go-apr/internal/code"
 )
 
 const (
 	envDirPattern string = "apr_go_*"
+	moduleName    string = "apr_go_build_env"
 )
 
 type BuildEnvironment struct {
 	rootPath string
+
+	FuncCode code.Code
 }
 
-func NewBuildEnvironment(path, funcName string) (*BuildEnvironment, error) {
+func NewBuildEnvironment(path, funcName string, goCode code.Code) (*BuildEnvironment, error) {
+
+	// call MakeBuildEnv without passing code.Code then fill the struct and return it
 
 	return nil, nil
 }
 
-// Destruct
+func (env *BuildEnvironment) Run() {
+
+}
+
+// Destruct deletes created env
 func (env *BuildEnvironment) Destruct() error {
 	return os.RemoveAll(env.rootPath)
 }
 
-func MakeBuildEnv(fileName, funcName string, args ...interface{}) error {
-	// finding package name
-	packageName, err := findPackageName(fileName)
-	if err != nil {
-		return err
-	}
-
+func MakeBuildEnv(goCode code.Code) error {
 	// preparing root dir for build env
-	rootDir, err := os.MkdirTemp("", envDirPattern)
+
+	rootDir := "/Users/pooria/Desktop/apr_go"
+	err := os.Mkdir(rootDir, 0755)
+	// rootDir, err := os.MkdirTemp("/Users/pooria/Desktop/", envDirPattern)
 	// rootDir, err := os.MkdirTemp(os.TempDir(), envDirPattern)
 	if err != nil {
 		return err
@@ -52,18 +59,18 @@ func MakeBuildEnv(fileName, funcName string, args ...interface{}) error {
 	}
 	defer fd.Close()
 
-	if _, err := fd.WriteString(getMainFileContent(packageName, funcName, args)); err != nil {
+	if _, err := fd.WriteString(generateMainFunction(goCode)); err != nil {
 		return fmt.Errorf("can not write main func content: %w", err)
 	}
 
 	// copy given file to desired destination
 	// todo: handle main package
-	if err := os.Mkdir(filepath.Join(rootDir, packageName), 0755); err != nil { // todo: perm must be constant?
+	if err := os.Mkdir(filepath.Join(rootDir, goCode.PackageName), 0755); err != nil {
 		return fmt.Errorf("can not create dir for given file: %w", err)
 	}
 
 	dfd, err := os.OpenFile(
-		filepath.Join(rootDir, packageName, fileName),
+		filepath.Join(rootDir, goCode.Path),
 		os.O_CREATE|os.O_WRONLY,
 		0755,
 	)
@@ -72,7 +79,7 @@ func MakeBuildEnv(fileName, funcName string, args ...interface{}) error {
 	}
 	defer dfd.Close()
 
-	sfd, err := os.Open(fileName)
+	sfd, err := os.Open(goCode.Path)
 	if err != nil {
 		return fmt.Errorf("can not open src file: %w", err)
 	}
@@ -98,24 +105,4 @@ func prepareGoModule(envPath string) error {
 	}
 
 	return nil
-}
-
-func findPackageName(fileName string) (string, error) {
-	data, err := os.ReadFile(fileName)
-	if err != nil {
-		return "", err
-	}
-
-	re, err := regexp.Compile(`^\s*package\s+(\w+)`)
-	if err != nil {
-		return "", err
-	}
-
-	pkgName := re.FindStringSubmatch(string(data))
-
-	if len(pkgName) < 1 {
-		return "", fmt.Errorf("can not find pacakge name")
-	}
-
-	return pkgName[0], nil
 }
