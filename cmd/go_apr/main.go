@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 
-	makebuildenv "github.com/99pouria/go-apr/internal/make_build_env"
 	preprocess "github.com/99pouria/go-apr/internal/pre-process"
+	env "github.com/99pouria/go-apr/internal/projectenv"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,7 +18,7 @@ func main() {
 
 	fmt.Printf("Checking go file...\t\t")
 
-	goCode, err := preprocess.StartPreProcess(*fileName, *funcName, *testFile)
+	goCode, err := preprocess.StartPreProcess(*fileName, *funcName)
 	if err != nil {
 		logrus.WithField("error", err).Fatal("pre process failed")
 	}
@@ -26,9 +26,11 @@ func main() {
 	fmt.Printf("OK\n")
 	fmt.Printf("Creating build environment...\t")
 
-	if err := makebuildenv.MakeBuildEnv(*goCode); err != nil {
+	be, err := env.CreateEnvironment(*goCode, *testFile)
+	if err != nil {
 		logrus.WithField("error", err).Fatal("make build env failed")
 	}
+	defer be.Destruct()
 
 	fmt.Printf("OK\n")
 }
