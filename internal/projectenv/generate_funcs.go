@@ -1,4 +1,4 @@
-package makebuildenv
+package projectenv
 
 import (
 	"fmt"
@@ -7,6 +7,13 @@ import (
 	"github.com/dave/jennifer/jen"
 )
 
+// generateMainFunction creates body of a main function that does these operations:
+//   - checks if length of args is equal to go function inputs
+//   - all args is string at first; these strings converts to specific types that is supported by the apr
+//     and also the go function accepts the types. for example, if function gets int64 and bool as input, genrator
+//     generates two type conversions that converts first arg from string to int64 and second arg to bool.
+//   - call the go function and pass casted args to it.
+//   - implement an exit function that writes output to Stdout and exits from the program with given status code.
 func generateMainFunction(goCode code.Code) string {
 	f := jen.NewFile("main")
 
@@ -48,26 +55,25 @@ func generateMainFunction(goCode code.Code) string {
 	return fmt.Sprintf("%#v", f)
 }
 
+// exit generates exit function
 func exit() []jen.Code {
 	defResult := jen.Var().Id("res").String()
 
 	resultFiller := jen.For(jen.List(jen.Id("_"), jen.Id("out_i")).Op(":=").Range().Id("out")).Block(
-		jen.Id("res").Op("=").Qual("fmt", "Sprintf").Params(jen.Lit("%s\n%s\n"), jen.Id("res"), jen.Id("out_i")),
+		jen.Id("res").Op("=").Qual("fmt", "Sprintf").Params(jen.Lit("%s%v\n"), jen.Id("res"), jen.Id("out_i")),
 	)
 
-	osCreate := jen.List(jen.Id("fd"), jen.Err()).Op(":=").Qual("os", "Create").Params(jen.Lit("output"))
-	ifStatement := jen.If(jen.Err().Op("!=").Nil()).Block(jen.Qual("os", "Exit").Params(jen.Lit(3)))
-
 	writeResult := jen.Qual("fmt", "Fprint").Params(
-		jen.Id("fd"),
-		jen.Index().Byte().Parens(jen.Id("res")),
+		jen.Qual("os", "Stdout"),
+		jen.Id("res"),
 	)
 
 	osExitCaller := jen.Qual("os", "Exit").Params(jen.Id("statusCode"))
 
-	return []jen.Code{defResult, resultFiller, osCreate, ifStatement, writeResult, osExitCaller}
+	return []jen.Code{defResult, resultFiller, writeResult, osExitCaller}
 }
 
+// callPkgFunc generates a code that calls the golang function with arguments
 func callPkgFunc(pkgName, funcName string, inputLen, outputLen int) []jen.Code {
 	params := make([]jen.Code, inputLen)
 	for i := 0; i < inputLen; i++ {
@@ -87,6 +93,7 @@ func callPkgFunc(pkgName, funcName string, inputLen, outputLen int) []jen.Code {
 	return []jen.Code{funcCaller, returnReuslt}
 }
 
+// checkArgsLen generates input length checker
 func checkArgsLen(inputLen int) []jen.Code {
 	ifStatement := jen.If(jen.Len(jen.Qual("os", "Args")).Op("!=").Lit(inputLen + 1)).Block(
 		jen.Id("exit").Call(jen.Lit(2), jen.Lit("not enough arguments")),
@@ -95,6 +102,7 @@ func checkArgsLen(inputLen int) []jen.Code {
 	return []jen.Code{ifStatement}
 }
 
+// convertInputs generates a code that converts all inputs to supported types
 func convertInputs(inputs map[string]int) []jen.Code {
 	inputParserCode := make([]jen.Code, 0, len(inputs))
 	inputIndex := 0
@@ -146,6 +154,17 @@ func convertInputs(inputs map[string]int) []jen.Code {
 
 	return inputParserCode
 }
+
+/*
+
+	All functions bellow generates a code that converts string to one of these types:
+	int, int8, uint16, int32, int64
+	uint, uint8, uint16, uint32, uint64
+	float32, float64
+	bool
+	string
+
+*/
 
 func str2str(resName string, str string) []jen.Code {
 	assigner := jen.Id(resName).Op(":=").Id(str)
