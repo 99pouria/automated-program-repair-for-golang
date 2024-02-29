@@ -15,7 +15,7 @@ func FileExist(path string) bool {
 
 // FormatGoFile uses gofmt command to format given golang file.
 func FormatGoFile(path string) error {
-	res, err := exec.Command("bash", "-c", "gofmt", path).CombinedOutput()
+	res, err := exec.Command("/bin/bash", "-c", "gofmt", path).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf(string(res))
 	}
