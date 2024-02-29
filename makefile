@@ -1,9 +1,6 @@
 # Define the name of the binary
 BINARY_NAME=apr
 
-# PATH=""
-# FUNC=""
-
 # Default target: build the executable
 all: build
 
@@ -18,9 +15,8 @@ clean:
 
 # Run target: build and run the target executable
 run: build
-	echo $(PATH)
-	echo $(FUNC)
-	./$(BINARY_NAME) -p $(PATH) -f $(FUNC)
+	./$(BINARY_NAME) -p $(path) -f $(func) -t $(tests)
+	$(MAKE) clean
 
 # Test target: run Go tests for the project
 test:
