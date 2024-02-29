@@ -25,7 +25,7 @@ var SupportedTypes map[string]bool = map[string]bool{
 }
 
 // StartPreProcess does some checks before starting to repair program
-func StartPreProcess(codePath, funcName, testCasesPath string) (*code.Code, error) {
+func StartPreProcess(codePath, funcName string) (*code.Code, error) {
 	if err := utils.FormatGoFile(codePath); err != nil {
 		return nil, err
 	}
@@ -35,13 +35,13 @@ func StartPreProcess(codePath, funcName, testCasesPath string) (*code.Code, erro
 		return nil, err
 	}
 
-	for inputType, _ := range c.InputTypes {
+	for inputType := range c.InputTypes {
 		if !SupportedTypes[inputType] {
 			return nil, fmt.Errorf("unsupported type in function input argument: %s", inputType)
 		}
 	}
 
-	for outputType, _ := range c.OutputTypes {
+	for outputType := range c.OutputTypes {
 		if !SupportedTypes[outputType] {
 			return nil, fmt.Errorf("unsupported type in function input argument: %s", outputType)
 		}
