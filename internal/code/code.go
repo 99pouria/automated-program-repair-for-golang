@@ -66,6 +66,10 @@ func (c *Code) retrievePkgName() error {
 		logrus.WithField("found names", matches).Warn("more than one name for package found")
 	}
 
+	if c.PackageName == "main" {
+		return fmt.Errorf("package name should not be main")
+	}
+
 	return nil
 }
 
