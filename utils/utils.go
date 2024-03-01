@@ -21,7 +21,3 @@ func FormatGoFile(path string) error {
 	}
 	return nil
 }
-
-func X(a, b string, c int, d, e, f bool) (string, string, bool) {
-	return "", "", false
-}
