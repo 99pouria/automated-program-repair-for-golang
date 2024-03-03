@@ -21,3 +21,13 @@ func FormatGoFile(path string) error {
 	}
 	return nil
 }
+
+// FixImports uses goimports to fix imports issues
+// TODO: move goimports to the repo
+func FixImports(path string) error {
+	res, err := exec.Command("/Users/pooria/go/bin/goimports", "-w", path).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%s: %w", string(res), err)
+	}
+	return nil
+}
