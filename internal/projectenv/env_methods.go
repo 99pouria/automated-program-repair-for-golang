@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/99pouria/go-apr/utils"
 )
 
 // ExecutionResult contains result of project execution
@@ -28,21 +30,26 @@ func (env *Environment) BuildProject() error {
 }
 
 // RunTestCases runs all testcases of project and returns a slice of ExecutionResult
-func (env *Environment) RunTestCases() []ExecutionResult {
+func (env *Environment) RunTestCases(debugMode bool) []ExecutionResult {
 	var result []ExecutionResult
 
 	for _, testCase := range env.TestCases {
-		result = append(result, env.RunTestCase(testCase.ID))
+		result = append(result, env.RunTestCase(testCase.ID, debugMode))
 	}
 
 	return result
 }
 
 // RunTestCase runs testcase that its ID is given as input of the function
-func (env *Environment) RunTestCase(testID int) ExecutionResult {
+func (env *Environment) RunTestCase(testID int, debugMode bool) ExecutionResult {
 	result := ExecutionResult{
 		TestCase: env.TestCases[testID-1],
 		Ok:       false,
+	}
+
+	if err := utils.FixImports(env.FuncCode.Path); err != nil {
+		result.Err = err
+		return result
 	}
 
 	if err := env.BuildProject(); err != nil {
@@ -62,9 +69,8 @@ func (env *Environment) RunTestCase(testID int) ExecutionResult {
 	}
 
 	result.Ok = true
-
 	for index, outLine := range strings.Fields(string(out)) {
-		if outLine != result.Outputs[index] {
+		if !debugMode && outLine != result.Outputs[index] {
 			result.Ok = false
 		}
 		result.ActualOutputs = append(result.ActualOutputs, outLine)
