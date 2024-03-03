@@ -73,7 +73,7 @@ func (c *Code) retrievePkgName() error {
 	return nil
 }
 
-func (c *Code) updateCodeContentFromPath() error {
+func (c *Code) UpdateCodeContentFromPath() error {
 	if err := utils.FormatGoFile(c.Path); err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (c *Code) updateCodeContentFromPath() error {
 
 func (c *Code) updateFuncPosition() error {
 
-	if err := c.updateCodeContentFromPath(); err != nil {
+	if err := c.UpdateCodeContentFromPath(); err != nil {
 		return err
 	}
 
