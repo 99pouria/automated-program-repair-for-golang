@@ -1,4 +1,4 @@
-package mymath
+package example
 
 func Multiplier(a, b int) int {
 	result := a
