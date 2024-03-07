@@ -4,12 +4,16 @@ import (
 	"flag"
 	"fmt"
 
+	fl "github.com/99pouria/go-apr/internal/fault_localizer"
 	preprocess "github.com/99pouria/go-apr/internal/pre-process"
 	env "github.com/99pouria/go-apr/internal/projectenv"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
+
+	// logrus.SetLevel(logrus.DebugLevel)
+
 	fileName := flag.String("p", "", "Path to golang file that contains function for test")
 	funcName := flag.String("f", "", "Name of function which needs repair")
 	testFile := flag.String("t", "", "Path to test files which contains test cases for given Golang function")
@@ -33,4 +37,6 @@ func main() {
 	defer be.Destruct()
 
 	fmt.Printf("OK\n")
+
+	fl.LocalizeFaults(be)
 }
