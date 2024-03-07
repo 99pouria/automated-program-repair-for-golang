@@ -74,8 +74,5 @@ func LocalizeFaults(env *projectenv.Environment) {
 			// TODO: handle error
 			fault.Revert()
 		}
-
-		// ye mechanisem dar biar baraye inke check koni ok shod ya na? va inke tescase based bashe (?! fail ha fix shodan ok
-		// nashodan bayad revert koni)
 	}
 }
