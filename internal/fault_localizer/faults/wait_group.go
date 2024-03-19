@@ -110,7 +110,7 @@ func (wg *WG) Check() (bool, error) {
 
 	defer wg.Revert()
 
-	results := wg.env.RunTestCases(true)
+	results := wg.env.RunTestCases(true, 1)
 	for _, result := range results {
 		rawResult := strings.Join(result.ActualOutputs, " ")
 		matches := wg.re.FindAllStringSubmatch(rawResult, -1)
