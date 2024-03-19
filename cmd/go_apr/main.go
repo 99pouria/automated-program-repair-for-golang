@@ -2,17 +2,16 @@ package main
 
 import (
 	"flag"
-	"fmt"
 
 	fl "github.com/99pouria/go-apr/internal/fault_localizer"
 	preprocess "github.com/99pouria/go-apr/internal/pre-process"
 	env "github.com/99pouria/go-apr/internal/projectenv"
-	"github.com/sirupsen/logrus"
+	"github.com/99pouria/go-apr/pkg/logger"
 )
 
 func main() {
 
-	// logrus.SetLevel(logrus.DebugLevel)
+	// logger.EnableDebugMode()
 
 	fileName := flag.String("p", "", "Path to golang file that contains function for test")
 	funcName := flag.String("f", "", "Name of function which needs repair")
@@ -20,23 +19,24 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Printf("Checking go file...\t\t")
+	logger.Printf("Checking go file...\t\t")
 
 	goCode, err := preprocess.StartPreProcess(*fileName, *funcName)
 	if err != nil {
-		logrus.WithField("error", err).Fatal("pre process failed")
+		logger.Fatalf("%s\t%s", logger.Symbols.Cross, err)
 	}
 
-	fmt.Printf("OK\n")
-	fmt.Printf("Creating build environment...\t")
+	logger.Println(logger.Symbols.Tick)
+
+	logger.Printf("Creating build environment...\t")
 
 	be, err := env.CreateEnvironment(*goCode, *testFile)
 	if err != nil {
-		logrus.WithField("error", err).Fatal("make build env failed")
+		logger.Fatalf("%s\n\t%s %s", logger.Symbols.Cross, logger.Red("[ERROR]"), err)
 	}
-	defer be.Destruct()
+	defer be.Finilize(*fileName)
 
-	fmt.Printf("OK\n")
+	logger.Println(logger.Symbols.Tick)
 
 	fl.LocalizeFaults(be)
 }

@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/99pouria/go-apr/pkg/logger"
 	"github.com/99pouria/go-apr/utils"
-	"github.com/sirupsen/logrus"
 )
 
 type Code struct {
@@ -63,7 +63,7 @@ func (c *Code) retrievePkgName() error {
 		c.PackageName = matches[1]
 	default:
 		c.PackageName = matches[1]
-		logrus.WithField("found names", matches).Warn("more than one name for package found")
+		logger.Warnf("more than one name for package found.   %s=%v\n", logger.Yellow("found names"), matches)
 	}
 
 	if c.PackageName == "main" {
