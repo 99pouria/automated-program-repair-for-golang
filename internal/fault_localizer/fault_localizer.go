@@ -11,6 +11,29 @@ import (
 func LocalizeFaults(env *projectenv.Environment) {
 	f := faults.GetFaults(env)
 
+	var (
+		execError error
+		done      bool = false
+	)
+
+	for !done || execError != nil {
+		logrus.Info("Running testcases to find failed ones")
+
+		// running testcases for 100 times
+		results := env.RunTestCases(false, 100)
+		var failedTestcases []int
+		for _, result := range results {
+			if !result.Ok {
+				failedTestcases = append(failedTestcases, result.ID)
+			}
+		}
+
+		if len(failedTestcases) == 0 {
+			done = true
+			continue
+		}
+	}
+
 	for _, fault := range f {
 
 		ok, err := fault.Check()
@@ -30,7 +53,7 @@ func LocalizeFaults(env *projectenv.Environment) {
 		logrus.WithField("fault", fault.Description()).Warn("Fault detected, Trying to fix fault")
 
 		// store testcases that failed
-		results := env.RunTestCases(false)
+		results := env.RunTestCases(false, 100)
 		var failedTestcases []int
 		for _, result := range results {
 			if !result.Ok {
@@ -45,7 +68,7 @@ func LocalizeFaults(env *projectenv.Environment) {
 		}
 
 		// rerun with testcases TODO: import comment and refactor variables names
-		results = env.RunTestCases(false)
+		results = env.RunTestCases(false, 100)
 		var newFailedTestcases []int
 		for _, result := range results {
 			if !result.Ok {
