@@ -38,15 +38,17 @@ func (env *Environment) RunTestCases(debugMode bool, n int) []ExecutionResult {
 	var result []ExecutionResult
 
 	if !debugMode {
-		logger.Printf("Running testcases %d time(s)...\n", n)
+		logger.Printf("\nRunning testcases %d time(s)...\n", n)
 		logger.Println("==============================================")
 		logger.Println("TestID\tRound\tOK\t Description")
 		logger.Println("----------------------------------------------")
+		defer logger.Printf("----------------------------------------------\n\n")
 	}
 
 	for _, testCase := range env.TestCases {
 		result = append(result, env.RunTestCase(testCase.ID, debugMode, n))
 	}
+
 	// TODO: print some percentage status for result
 	return result
 }
