@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 var (
@@ -72,4 +73,36 @@ func Warnf(format string, a ...any) (n int, err error) {
 
 func Warnln(a ...any) (n int, err error) {
 	return fmt.Fprintln(ioWriter, append([]any{Yellow("[WARN]")}, a...)...)
+}
+
+func PrintInBoxCenter(a string, width int) {
+	Printf("%s%s%s\n", Blue("┌"), strings.Repeat(Blue("─"), width-2), Blue("┐"))
+
+	l := (width - len(a) - 2) / 2
+	r := width - 2 - (len(a) + l)
+
+	Printf("%s%s%s%s%s\n", Blue("│"), strings.Repeat(" ", l), a, strings.Repeat(" ", r), Blue("│"))
+
+	Printf("%s%s%s\n", Blue("└"), strings.Repeat(Blue("─"), width-2), Blue("┘"))
+}
+
+func PrintInBoxLeft(a string) {
+	a = strings.ReplaceAll(a, "\t", "    ")
+	var width int
+	for _, line := range strings.Split(a, "\n") {
+		length := len(line)
+		if length > width {
+			width = length
+		}
+	}
+
+	width += 1
+
+	Printf("%s%s%s\n", Blue("┌"), strings.Repeat(Blue("─"), width), Blue("┐"))
+
+	for _, line := range strings.Split(a, "\n") {
+		Printf("%s%s%s%s\n", Blue("│"), line, strings.Repeat(" ", width-len(line)), Blue("│"))
+	}
+
+	Printf("%s%s%s\n", Blue("└"), strings.Repeat(Blue("─"), width), Blue("┘"))
 }
