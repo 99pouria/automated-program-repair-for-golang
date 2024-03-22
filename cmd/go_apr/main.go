@@ -44,7 +44,7 @@ func main() {
 	if err != nil {
 		logger.Fatalf("%s\n\t%s %s", logger.Symbols.Cross, logger.Red("[ERROR]"), err)
 	}
-	defer be.Finilize(*fileName)
+	defer be.Finilize(*fileName, *debug)
 
 	logger.Println(logger.Symbols.Tick)
 

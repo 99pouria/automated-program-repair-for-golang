@@ -2,7 +2,6 @@ package projectenv
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -115,16 +114,12 @@ func (env *Environment) RunTestCase(testID int, debugMode bool, n int) Execution
 }
 
 // Finilize deletes created env and stores repaired file
-func (env *Environment) Finilize(path string) error {
-	newFileName := fmt.Sprintf("repaired_%s", path)
-	fd, err := os.Create(newFileName)
-	if err != nil {
-		return err
+func (env *Environment) Finilize(path string, debug bool) error {
+	if debug {
+		logger.Debugf("Env file's is not deleting. You can check it in following path:\n")
+		logger.Debugf("\t%s\n", env.rootPath)
+	} else {
+		return os.RemoveAll(env.rootPath)
 	}
-
-	if _, err := io.Copy(fd, strings.NewReader(env.FuncCode.CodeContent)); err != nil {
-		return err
-	}
-
-	return os.RemoveAll(env.rootPath)
+	return nil
 }
