@@ -1,4 +1,4 @@
-package faults
+package issuetracker
 
 import (
 	"fmt"
@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/99pouria/go-apr/internal/projectenv"
+	"github.com/99pouria/go-apr/pkg/logger"
 	"github.com/99pouria/go-apr/utils"
-	"github.com/sirupsen/logrus"
 )
 
 const emptyPattern string = "*_apr_goroutine_done_"
@@ -45,8 +45,6 @@ func InitWaitGroupFault(env *projectenv.Environment) *WG {
 }
 
 func (wg *WG) Check() (bool, error) {
-	logrus.WithField("fault", "wait-group").Info("Looking for unfinished goroutines...")
-
 	// Create the AST by parsing the source
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "", wg.env.FuncCode.CodeContent, 0)
@@ -72,10 +70,10 @@ func (wg *WG) Check() (bool, error) {
 	ast.Inspect(file, func(n ast.Node) bool {
 		if fn, ok := n.(*ast.FuncLit); ok && fn.Pos() >= start && fn.End() <= end {
 			// Found a goroutine
-			logrus.WithFields(logrus.Fields{
-				"fault":              "wait-group",
-				"goroutine position": fset.Position(fn.Pos()),
-			}).Debug("Found a goroutine")
+			logger.Debugf("A goroutine found.\t%s=%s\n",
+				logger.Yellow("goroutine position"),
+				fset.Position(fn.Pos()),
+			)
 
 			// Add printf("apr_goroutine_%d_done\n", id) at the beginning of goroutine
 			printfCall := &ast.ExprStmt{
@@ -106,8 +104,6 @@ func (wg *WG) Check() (bool, error) {
 		return false, err
 	}
 
-	logrus.WithField("fault", "wait-group").Debug("Successfully modified the file")
-
 	defer wg.Revert()
 
 	results := wg.env.RunTestCases(true, 1)
@@ -123,17 +119,16 @@ func (wg *WG) Check() (bool, error) {
 
 		for id := range wg.goroutineCount {
 			if !x[fmt.Sprint(id+1)] {
-				logrus.WithFields(logrus.Fields{
-					"fault":           "wait-group",
-					"goroutine ID":    id + 1,
-					"testcase number": result.ID,
-				}).Warn("A goroutine doesn't finished completely")
+				logger.Warnf("A goroutine doesn't finished completely.\t%s=%d %s=%d\n",
+					logger.Yellow("goroutine number"), id+1,
+					"testcase number", result.ID,
+				)
 				return false, nil
 			}
 		}
 	}
 
-	logrus.WithField("fault", "wait-group").Info("All goroutines worked completely")
+	logger.Debugf("All goroutines worked completely")
 
 	return true, nil
 }
