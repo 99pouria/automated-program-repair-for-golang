@@ -18,6 +18,11 @@ run: build
 	./$(BINARY_NAME) -p $(path) -f $(func) -t $(tests)
 	$(MAKE) clean
 
+# Install target: Build and copy binary file to /usr/local/bin and then clean
+install: build
+	sudo cp $(BINARY_NAME) /usr/local/bin
+	$(MAKE) clean
+
 # Test target: run Go tests for the project
 test:
 	go test ./...
