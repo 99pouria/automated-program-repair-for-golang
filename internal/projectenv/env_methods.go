@@ -116,7 +116,7 @@ func (env *Environment) RunTestCase(testID int, debugMode bool, n int) Execution
 // Finilize deletes created env and stores repaired file
 func (env *Environment) Finilize(path string, debug bool) error {
 	if debug {
-		logger.Debugf("Env file's is not deleting. You can check it in following path:\n")
+		logger.Debugf("Env files is not deleting. You can check it in following path:\n")
 		logger.Debugf("\t%s\n", env.rootPath)
 	} else {
 		return os.RemoveAll(env.rootPath)
