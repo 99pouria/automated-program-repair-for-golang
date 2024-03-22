@@ -15,7 +15,7 @@ func main() {
 	fileName := flag.String("p", "", "Path to golang file that contains function for test")
 	funcName := flag.String("f", "", "Name of function which needs repair")
 	testFile := flag.String("t", "", "Path to test files which contains test cases for given Golang function")
-	save := flag.Bool("save", false, "Saves to source file")
+	save := flag.Bool("save", false, "Saves to source file. By default it only prints repaired code")
 	debug := flag.Bool("debug", false, "Enables debug mode to print additional information")
 
 	flag.Parse()
@@ -55,6 +55,9 @@ func main() {
 			logger.Println("BUG-FREE code:")
 			logger.PrintInBoxLeft(be.FuncCode.CodeContent)
 		}
+	} else if *debug {
+		logger.Println("Last code content:")
+		logger.PrintInBoxLeft(be.FuncCode.CodeContent)
 	}
 
 }
