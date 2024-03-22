@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	fl "github.com/99pouria/go-apr/internal/fault_localizer"
 	preprocess "github.com/99pouria/go-apr/internal/pre-process"
@@ -11,13 +12,22 @@ import (
 
 func main() {
 
-	// logger.EnableDebugMode()
-
 	fileName := flag.String("p", "", "Path to golang file that contains function for test")
 	funcName := flag.String("f", "", "Name of function which needs repair")
 	testFile := flag.String("t", "", "Path to test files which contains test cases for given Golang function")
+	save := flag.Bool("save", false, "Saves to source file")
+	debug := flag.Bool("debug", false, "Enables debug mode to print additional information")
 
 	flag.Parse()
+
+	if *fileName == "" || *funcName == "" || *testFile == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	if *debug {
+		logger.EnableDebugMode()
+	}
 
 	logger.Printf("Checking go file...\t\t")
 
@@ -38,5 +48,13 @@ func main() {
 
 	logger.Println(logger.Symbols.Tick)
 
-	fl.LocalizeFaults(be)
+	if fl.LocalizeFaults(be) {
+		if *save {
+			be.FuncCode.SaveToFile(*fileName)
+		} else {
+			logger.Println("BUG-FREE code:")
+			logger.PrintInBoxLeft(be.FuncCode.CodeContent)
+		}
+	}
+
 }
