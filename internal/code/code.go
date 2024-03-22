@@ -144,3 +144,13 @@ func (c *Code) ReplaceFuncBody(newBody string) error {
 
 	return utils.FormatGoFile(c.Path)
 }
+
+func (c *Code) SaveToFile(path string) error {
+	fd, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+
+	_, err = fd.WriteString(c.CodeContent)
+	return err
+}
