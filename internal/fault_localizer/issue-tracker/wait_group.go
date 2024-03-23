@@ -45,6 +45,12 @@ func InitWaitGroupFault(env *projectenv.Environment) *WG {
 }
 
 func (wg *WG) Check() (bool, error) {
+	wg.oldFileContent = wg.env.FuncCode.CodeContent
+	defer func() {
+		if err := wg.Revert(); err != nil {
+			logger.Warnf("Can not revert changes that applied by WG.Check() function: %s", err.Error())
+		}
+	}()
 	// Create the AST by parsing the source
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "", wg.env.FuncCode.CodeContent, 0)
@@ -134,9 +140,7 @@ func (wg *WG) Check() (bool, error) {
 }
 
 func (wg *WG) Fix() error {
-	if err := wg.Revert(); err != nil {
-		return err
-	}
+
 	// Create the AST by parsing the source
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "", wg.env.FuncCode.CodeContent, 0)
