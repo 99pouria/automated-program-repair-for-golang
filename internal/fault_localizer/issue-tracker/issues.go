@@ -16,7 +16,7 @@ type Issues struct {
 }
 
 func GetIssues(env *projectenv.Environment) *Issues {
-	return &Issues{issues: []Issue{InitWaitGroupFault(env)}}
+	return &Issues{issues: []Issue{InitDataRaceIT(env), InitWaitGroupFault(env)}}
 }
 
 func (i *Issues) Next() bool {
