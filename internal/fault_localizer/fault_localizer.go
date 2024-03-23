@@ -63,6 +63,11 @@ func LocalizeFaults(env *projectenv.Environment) (isFixed bool) {
 			}
 			issue := issues.Get()
 
+			// trying to update file content to have latest modified file
+			if err := env.FuncCode.UpdateCodeContentFromPath(); err != nil {
+				logger.Warnf("Can not read file content from its source. This error effects result. Error: %s", err.Error())
+			}
+
 			ok, err := issue.Check()
 			if err != nil {
 				logger.Printf("%s Can not check for bugs.\t%s=%s\n", logger.Red("[ERROR]"), logger.Yellow("Description"), issue.Description())
@@ -77,7 +82,7 @@ func LocalizeFaults(env *projectenv.Environment) (isFixed bool) {
 			logger.Printf("%s Bug detected. Trying to fix it.\t\t%s=%s\n", logger.Blue("[INFO]"), logger.Yellow("Bug description"), issue.Description())
 
 			if err := issue.Fix(); err != nil {
-				logger.Printf("%s Can not fix bug.\n", logger.Red("[ERROR]"))
+				logger.Printf("%s Can not fix bug: %s\n", logger.Red("[ERROR]"), err.Error())
 				// trying to revet changes applied by Fix method
 				if err := issue.Revert(); err != nil {
 					logger.Debugf("can not revert applied changes %s\n", err.Error())
@@ -107,7 +112,7 @@ func LocalizeFaults(env *projectenv.Environment) (isFixed bool) {
 			}
 
 			if improved {
-				logger.Printf("%s More testcases passes now. Applying patch was effective.\n", logger.Blue("[INFO]"))
+				logger.Printf("%s Applying patch was effective.\n", logger.Blue("[INFO]"))
 				fixedIssues = append(fixedIssues, issue)
 				logger.Printf("%s Rerunning testcases to make sure there isn't any other bugs.\n", logger.Blue("[INFO]"))
 				break
