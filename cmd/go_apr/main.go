@@ -33,7 +33,7 @@ func main() {
 
 	goCode, err := preprocess.StartPreProcess(*fileName, *funcName)
 	if err != nil {
-		logger.Fatalf("%s\t%s", logger.Symbols.Cross, err)
+		logger.Fatalf("%s\n\t%s %s", logger.Symbols.Cross, logger.Red("[ERROR]"), err)
 	}
 
 	logger.Println(logger.Symbols.Tick)
