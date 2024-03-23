@@ -44,10 +44,6 @@ func (env *Environment) RunTestCases(debugMode bool, n int) []ExecutionResult {
 		defer logger.Printf("----------------------------------------------\n\n")
 	}
 
-	if !debugMode {
-		fmt.Printf("len(env.TestCases): %v\n", len(env.TestCases))
-	}
-
 	for _, testCase := range env.TestCases {
 		result = append(result, env.RunTestCase(testCase.ID, debugMode, n))
 	}
