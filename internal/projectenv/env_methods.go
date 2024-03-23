@@ -21,7 +21,7 @@ type ExecutionResult struct {
 
 // BuildProject build project using 'go build' command
 func (env *Environment) BuildProject() error {
-	command := fmt.Sprintf("cd %s && go build -o app main.go", env.rootPath)
+	command := fmt.Sprintf("cd %s && go build -o app main.go", env.RootPath)
 	out, err := exec.Command("bash", "-c", command).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("%s", out)
@@ -44,6 +44,10 @@ func (env *Environment) RunTestCases(debugMode bool, n int) []ExecutionResult {
 		defer logger.Printf("----------------------------------------------\n\n")
 	}
 
+	if !debugMode {
+		fmt.Printf("len(env.TestCases): %v\n", len(env.TestCases))
+	}
+
 	for _, testCase := range env.TestCases {
 		result = append(result, env.RunTestCase(testCase.ID, debugMode, n))
 	}
@@ -63,6 +67,12 @@ func (env *Environment) RunTestCase(testID int, debugMode bool, n int) Execution
 		Ok:       false,
 	}
 
+	defer func() {
+		if !debugMode && result.Err != nil {
+			logger.Printf("%s: %s", logger.Red("[ERROR]"), result.Err.Error())
+		}
+	}()
+
 	if err := utils.FixImports(env.FuncCode.Path); err != nil {
 		result.Err = err
 		return result
@@ -73,7 +83,7 @@ func (env *Environment) RunTestCase(testID int, debugMode bool, n int) Execution
 		return result
 	}
 
-	execCommand := filepath.Join(env.rootPath, "app")
+	execCommand := filepath.Join(env.RootPath, "app")
 	for _, input := range env.TestCases[testID-1].Inputs {
 		execCommand = fmt.Sprintf("%s %s", execCommand, input)
 	}
@@ -117,9 +127,9 @@ func (env *Environment) RunTestCase(testID int, debugMode bool, n int) Execution
 func (env *Environment) Finilize(path string, debug bool) error {
 	if debug {
 		logger.Debugf("Env files is not deleting. You can check it in following path:\n")
-		logger.Debugf("\t%s\n", env.rootPath)
+		logger.Debugf("\t%s\n", env.RootPath)
 	} else {
-		return os.RemoveAll(env.rootPath)
+		return os.RemoveAll(env.RootPath)
 	}
 	return nil
 }

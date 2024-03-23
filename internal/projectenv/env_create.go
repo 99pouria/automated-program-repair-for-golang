@@ -18,7 +18,7 @@ const (
 )
 
 type Environment struct {
-	rootPath string
+	RootPath string
 
 	FuncCode *code.Code
 
@@ -98,7 +98,7 @@ func CreateEnvironment(goCode code.Code, testCasePath string) (*Environment, err
 
 	be := new(Environment)
 
-	be.rootPath = rootDir
+	be.RootPath = rootDir
 	be.FuncCode = destCode
 	be.TestCases = testCases
 
